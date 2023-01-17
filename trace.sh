@@ -61,6 +61,20 @@ trace_on "copy_thread"
 
 trace_on "copy_process"
 
+trace_on "alloc_pid"
+trace_on "cgroup_can_fork"
+trace_on "sched_cgroup_fork"
+trace_on "klp_copy_process"
+trace_on "sched_core_fork"
+trace_on "proc_fork_connector"
+trace_on "sched_post_fork"
+trace_on "cgroup_post_fork"
+trace_on "uprobe_copy_process"
+trace_on "cgroup_fork"
+trace_on "dup_task_struct"
+trace_on "copy_creds"
+trace_on "__mpol_dup"
+
 PFLAGS="
         --tracer=function_graph"
 
