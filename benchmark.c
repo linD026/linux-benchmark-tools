@@ -37,10 +37,20 @@ static void unset_mem(void)
     munmap(test_info.mm.shared, MEM_SIZE);
 }
 
+static void set_all(void)
+{
+    BUG_ON(set_mem(), "memory");
+}
+
+static void unset_all(void)
+{
+    unset_mem();
+}
+
 int main(void)
 {
 
-    set_mem();
+    set_all();
 
     test_info.child_pid = fork();
     switch (test_info.child_pid) {
@@ -48,14 +58,14 @@ int main(void)
             BUG_ON(1, "fork");
         case 0:
             /* child */
-            unset_mem();
+            unset_all();
             return 0;
         default:
             /* parent */
-            unset_mem();
+            unset_all();
     }
 
-    pr_info("succeeded\n");
+    pr_info("benchmark succeeded\n");
 
     return 0;
 }
