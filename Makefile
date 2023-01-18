@@ -22,7 +22,7 @@ GEN += $(PARSE_OBJ)
 benchmark: $(BENCHMARK_OBJ)
 	$(CC) $(BENCHMARK_OBJ) -o $(BENCHMARK)
 
-parse: $(PARSE_OBJ)
+parser: $(PARSE_OBJ)
 	$(CC) $(PARSE_OBJ) -o $(PARSE)
 
 clean:
