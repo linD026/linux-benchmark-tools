@@ -3,20 +3,30 @@
 #include <stdlib.h>
 #include "debug.h"
 
+/*
+ *                          [next]
+ * main function -> function -> ... 
+ *                  | [nested_function]
+ *                  nested_function -> ....
+ *
+ *
+ *
+ */
 struct info {
     char name[40];
     float nr;
     int cpu;
     struct info *next;
+    struct info *nested;
+    int maybe_nested;
 };
 
 static int chart_cnt = 0;
 static FILE *fp = NULL;
 
-static float parser(struct info *head)
+static struct info *parser(struct info *head)
 {
     char buffer[80] = { 0 };
-    float time = 0;
 
     while (memset(buffer, '\0', 80), fgets(buffer, 80, fp) != NULL) {
         char us[5];
@@ -28,7 +38,9 @@ static float parser(struct info *head)
 
         BUG_ON(!info, "malloc");
         info->nr = 0;
+        info->maybe_nested = 0;
         info->next = NULL;
+        info->nested = NULL;
         memset(info->name,'\0', 40);
 
         /*
@@ -46,16 +58,21 @@ static float parser(struct info *head)
                      &info->cpu, &l, &t, info->name, &r);
         if (ret == 5 && l == ')' && t == '|' && r == '{') {
             if (head) {
-                struct info *tmp = malloc(sizeof(struct info));
-
-                BUG_ON(!tmp, "malloc");
                 offset = strlen(info->name);
                 info->name[offset - 2] = '\0';
-                strncpy(tmp->name, info->name, 40);
-                tmp->cpu = info->cpu;
-                tmp->nr = 0;
-                tmp->next = NULL;
-                info->nr = parser(tmp);
+                for (struct info *tmp = head->nested ? head->nested : head->next;
+                     tmp; tmp = tmp->next) {
+                    if (strncmp(tmp->name, info->name, 40) == 0) {
+                        free(info);
+                        tmp->maybe_nested = 1;
+                        parser(tmp);
+                        goto next;
+                    }
+                }
+
+                parser(info);
+                info->nested = info->next;
+                info->next = NULL;
                 name_rollback = 0;
                 goto success;
             }
@@ -74,11 +91,10 @@ static float parser(struct info *head)
                 &info->cpu, &l, &a, &info->nr, us, &t, &r);
         if (ret == 7 && l == ')' && in_sym_list(a) && t == '|' && r == '}' )  {
 end:
-            head->nr = info->nr;
+            head->nr += info->nr;
             free(info);
-            goto out;
+            break;
         }
-
         //   5)   1.908 us    |    copy_signal();
         ret = sscanf(buffer, "%d%c %f %s %c %s",
                      &info->cpu, &l, &info->nr, us, &t, info->name);
@@ -99,49 +115,69 @@ success:
         BUG_ON(!head, "head == NULL with info:%s", buffer);
         offset = strlen(info->name);
         info->name[offset - name_rollback] = '\0';
-        for (struct info *tmp = head->next; tmp; tmp = tmp->next) {
+        for (struct info *tmp = head->nested ? head->nested : head->next; tmp;
+             tmp = tmp->next) {
             if (strncmp(tmp->name, info->name, 40) == 0) {
                 tmp->nr += info->nr;
-                goto skip;
+                free(info);
+                goto next;
             }
         }
-        info->next = head->next;
-        head->next = info;
-        continue;
-skip:
-        free(info);
+        if (head->nested || head->maybe_nested) {
+            info->next = head->nested;
+            head->nested = info;
+        } else {
+            info->next = head->next;
+            head->next = info;
+        }
+next:
+        ;
     }
+    return head;
+}
 
-out:
+static void __print_info(struct info *head)
+{
+    float time = 0;
+
     printf("drawChart(");
     printf("'%s - %f us',\n", head->name, head->nr);
-    printf("[['%s', 'duration (us)'],\n", head->name);
-    for (struct info *tmp = head->next; tmp;) {
+    printf("          [['%s', 'duration (us)'],\n", head->name);
+    for (struct info *tmp = head->nested ? head->nested : head->next; tmp;) {
         struct info *next = tmp->next;
 
-        printf("['%s', %f],\n", tmp->name, tmp->nr);
+        printf("           ['%s', %f],\n", tmp->name, tmp->nr);
         time += tmp->nr;
-        free(tmp);
         tmp = next;
     }
-    printf("['%s', %f]],\n", "rest", head->nr - time);
-    printf("\"piechart%d\");\n", chart_cnt++);
-    time = head->nr;
-    free(head);
+    printf("           ['%s', %f]],\n", "rest", head->nr - time);
+    printf("          \"piechart%d\");\n", chart_cnt++);
+}
 
-    return time;
+/* if [main function]->next->nr == 0, then it has nested_function */
+static void print_info(struct info *head)
+{
+    for (struct info *tmp = head->nested ? head->nested : head->next; tmp; tmp = tmp->next) {
+        if (tmp->nested)
+            print_info(tmp);
+    }
+    __print_info(head);
 }
 
 // https://jsfiddle.net/linD026/a1fsxpkj/
 int main (void)
 {
-    char buffer[80] = { 0 };
+    struct info *main_info;
 
+    printf("JavaScript pie chart data table (see draw_pie_chart.js):\n\n");
     fp = fopen("ftrace_output", "r");
-    parser(NULL);
+    main_info = parser(NULL);
     fclose(fp);
-    
-    printf("\n<script type=\"text/javascript\" src=\"https://www.gstatic.com/charts/loader.js\"></script>\n");
+
+    print_info(main_info);
+
+    printf("\n\nHTML source code:\n");
+    printf("<script type=\"text/javascript\" src=\"https://www.gstatic.com/charts/loader.js\"></script>\n");
     for (int i = 0; i < chart_cnt;i++)
         printf("       <div id=\"piechart%d\" style=\"width: 900px; height: 500px;\"></div>\n", i);
 

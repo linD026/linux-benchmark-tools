@@ -1,113 +1,182 @@
- 11)               |  copy_process() {
- 11)   4.970 us    |    dup_task_struct();
- 11)   1.112 us    |    copy_creds();
- 11)   0.233 us    |    cgroup_fork();
- 11)   1.049 us    |    sched_fork();
- 11)   0.294 us    |    audit_alloc();
- 11)   0.477 us    |    security_task_alloc();
- 11)   0.232 us    |    copy_semundo();
- 11)   1.709 us    |    dup_fd();
- 11)   0.702 us    |    copy_fs_struct();
- 11)   0.898 us    |    copy_sighand();
- 11)   1.497 us    |    copy_signal();
- 11)               |    dup_mm() {
- 11)               |      dup_mmap() {
- 11)   0.234 us    |        uprobe_dup_mmap();
- 11)   0.466 us    |        vm_area_dup();
- 11)   0.247 us    |        vma_dup_policy();
- 11)   0.245 us    |        dup_userfaultfd();
- 11)   0.258 us    |        copy_page_range();
- 11)   0.457 us    |        vm_area_dup();
- 11)   0.236 us    |        vma_dup_policy();
- 11)   0.246 us    |        dup_userfaultfd();
- 11)   0.237 us    |        copy_page_range();
- 11)   0.441 us    |        vm_area_dup();
- 11)   0.234 us    |        vma_dup_policy();
- 11)   0.233 us    |        dup_userfaultfd();
- 11)   0.238 us    |        copy_page_range();
- 11)   0.529 us    |        vm_area_dup();
- 11)   0.235 us    |        vma_dup_policy();
- 11)   0.238 us    |        dup_userfaultfd();
- 11)   2.759 us    |        copy_page_range();
- 11)   0.449 us    |        vm_area_dup();
- 11)   0.303 us    |        vma_dup_policy();
- 11)   0.233 us    |        dup_userfaultfd();
- 11)   0.623 us    |        copy_page_range();
- 11)   0.667 us    |        vm_area_dup();
- 11)   0.233 us    |        vma_dup_policy();
- 11)   0.233 us    |        dup_userfaultfd();
- 11)   2.805 us    |        copy_page_range();
- 11)   0.683 us    |        vm_area_dup();
- 11)   0.236 us    |        vma_dup_policy();
- 11)   0.232 us    |        dup_userfaultfd();
- 11)   0.460 us    |        copy_page_range();
- 11)   0.593 us    |        vm_area_dup();
- 11)   0.223 us    |        vma_dup_policy();
- 11)   0.237 us    |        dup_userfaultfd();
- 11)   0.239 us    |        copy_page_range();
- 11)   0.443 us    |        vm_area_dup();
- 11)   0.234 us    |        vma_dup_policy();
- 11)   0.235 us    |        dup_userfaultfd();
- 11)   0.318 us    |        copy_page_range();
- 11)   0.661 us    |        vm_area_dup();
- 11)   0.224 us    |        vma_dup_policy();
- 11)   0.234 us    |        dup_userfaultfd();
- 11)   1.106 us    |        copy_page_range();
- 11)   0.686 us    |        vm_area_dup();
- 11)   0.235 us    |        vma_dup_policy();
- 11)   0.237 us    |        dup_userfaultfd();
- 11)   0.542 us    |        copy_page_range();
- 11)   0.459 us    |        vm_area_dup();
- 11)   0.470 us    |        vma_dup_policy();
- 11)   0.236 us    |        dup_userfaultfd();
- 11)   0.817 us    |        copy_page_range();
- 11)   0.507 us    |        vm_area_dup();
- 11)   0.227 us    |        vma_dup_policy();
- 11)   0.225 us    |        dup_userfaultfd();
- 11)   0.554 us    |        copy_page_range();
- 11)   0.442 us    |        vm_area_dup();
- 11)   0.234 us    |        vma_dup_policy();
- 11)   0.234 us    |        dup_userfaultfd();
- 11)   0.310 us    |        copy_page_range();
- 11)   0.730 us    |        vm_area_dup();
- 11)   0.231 us    |        vma_dup_policy();
- 11)   0.238 us    |        dup_userfaultfd();
- 11)   0.250 us    |        copy_page_range();
- 11)   0.464 us    |        vm_area_dup();
- 11)   0.235 us    |        vma_dup_policy();
- 11)   0.387 us    |        dup_userfaultfd();
- 11)   0.238 us    |        copy_page_range();
- 11)   0.725 us    |        vm_area_dup();
- 11)   0.232 us    |        vma_dup_policy();
- 11)   0.237 us    |        dup_userfaultfd();
- 11)   0.634 us    |        copy_page_range();
- 11)   0.655 us    |        vm_area_dup();
- 11)   0.224 us    |        vma_dup_policy();
- 11)   0.235 us    |        dup_userfaultfd();
- 11)   0.526 us    |        copy_page_range();
- 11)   0.441 us    |        vm_area_dup();
- 11)   0.222 us    |        vma_dup_policy();
- 11)   0.250 us    |        dup_userfaultfd();
- 11)   1.700 us    |        copy_page_range();
- 11)   0.460 us    |        vm_area_dup();
- 11)   0.449 us    |        vma_dup_policy();
- 11)   0.236 us    |        dup_userfaultfd();
- 11)   0.638 us    |        copy_page_range();
- 11)   0.443 us    |        vm_area_dup();
- 11)   0.405 us    |        vma_dup_policy();
- 11)   0.234 us    |        dup_userfaultfd();
- 11)   0.479 us    |        copy_page_range();
- 11) + 73.451 us   |      }
- 11) + 75.959 us   |    }
- 11)   0.277 us    |    copy_namespaces();
- 11)   1.052 us    |    copy_thread();
- 11)   2.464 us    |    alloc_pid();
- 11)   2.042 us    |    cgroup_can_fork();
- 11)   1.215 us    |    sched_cgroup_fork();
- 11)   0.285 us    |    klp_copy_process();
- 11)   0.360 us    |    sched_core_fork();
- 11)   0.294 us    |    proc_fork_connector();
- 11)   0.248 us    |    sched_post_fork();
- 11)   1.768 us    |    cgroup_post_fork();
- 11)   0.379 us    |    uprobe_copy_process();
- 11) ! 112.680 us  |  }
+  3)               |  copy_process() {
+  3)   0.144 us    |    _raw_spin_lock_irq();
+  3)               |    dup_task_struct() {
+  3)   0.177 us    |      _raw_spin_lock();
+  3)   0.170 us    |      _raw_spin_lock();
+  3)   0.171 us    |      _raw_spin_lock();
+  3)   0.146 us    |      _raw_spin_lock();
+  3) + 13.919 us   |    }
+  3)   0.838 us    |    copy_creds();
+  3)   0.141 us    |    cgroup_fork();
+  3)   0.780 us    |    sched_fork();
+  3)   0.237 us    |    audit_alloc();
+  3)   0.384 us    |    security_task_alloc();
+  3)   0.171 us    |    copy_semundo();
+  3)               |    dup_fd() {
+  3)   0.161 us    |      _raw_spin_lock();
+  3)   1.823 us    |    }
+  3)               |    copy_fs_struct() {
+  3)   0.152 us    |      _raw_spin_lock();
+  3)   0.955 us    |    }
+  3)               |    copy_sighand() {
+  3)   0.135 us    |      _raw_spin_lock_irq();
+  3)   1.502 us    |    }
+  3)               |    copy_signal() {
+  3)   0.138 us    |      _raw_spin_lock();
+  3)   1.666 us    |    }
+  3)               |    dup_mm() {
+  3)   0.174 us    |      _raw_spin_lock();
+  3)               |      dup_mmap() {
+  3)   0.129 us    |        uprobe_dup_mmap();
+  3)   0.268 us    |        vm_area_dup();
+  3)   0.453 us    |        vma_dup_policy();
+  3)   0.166 us    |        dup_userfaultfd();
+  3)   0.156 us    |        copy_page_range();
+  3)   0.257 us    |        vm_area_dup();
+  3)   0.132 us    |        vma_dup_policy();
+  3)   0.135 us    |        dup_userfaultfd();
+  3)   0.133 us    |        copy_page_range();
+  3)   0.244 us    |        vm_area_dup();
+  3)   0.125 us    |        vma_dup_policy();
+  3)   0.134 us    |        dup_userfaultfd();
+  3)   0.133 us    |        copy_page_range();
+  3)   0.417 us    |        vm_area_dup();
+  3)   0.133 us    |        vma_dup_policy();
+  3)   0.134 us    |        dup_userfaultfd();
+  3)               |        copy_page_range() {
+  3)   0.245 us    |          _raw_spin_lock();
+  3)   0.134 us    |          _raw_spin_lock();
+  3)   0.258 us    |          _raw_spin_lock();
+  3)   0.131 us    |          _raw_spin_lock();
+  3)   0.138 us    |          _raw_spin_lock();
+  3)   3.308 us    |        }
+  3)   0.285 us    |        vm_area_dup();
+  3)   0.133 us    |        vma_dup_policy();
+  3)   0.135 us    |        dup_userfaultfd();
+  3)               |        copy_page_range() {
+  3)   0.132 us    |          _raw_spin_lock();
+  3)   0.132 us    |          _raw_spin_lock();
+  3)   0.880 us    |        }
+  3)   0.335 us    |        vm_area_dup();
+  3)   0.133 us    |        vma_dup_policy();
+  3)   0.135 us    |        dup_userfaultfd();
+  3)               |        copy_page_range() {
+  3)   0.142 us    |          _raw_spin_lock();
+  3)   0.227 us    |          _raw_spin_lock();
+  3)   0.141 us    |          _raw_spin_lock();
+  3)   0.287 us    |          _raw_spin_lock();
+  3)   0.144 us    |          _raw_spin_lock();
+  3)   3.345 us    |        }
+  3)   0.257 us    |        vm_area_dup();
+  3)   0.133 us    |        vma_dup_policy();
+  3)   0.238 us    |        dup_userfaultfd();
+  3)   0.139 us    |        copy_page_range();
+  3)   0.248 us    |        vm_area_dup();
+  3)   0.130 us    |        vma_dup_policy();
+  3)   0.133 us    |        dup_userfaultfd();
+  3)   0.146 us    |        copy_page_range();
+  3)   0.254 us    |        vm_area_dup();
+  3)   0.131 us    |        vma_dup_policy();
+  3)   0.130 us    |        dup_userfaultfd();
+  3)   0.133 us    |        copy_page_range();
+  3)   0.248 us    |        vm_area_dup();
+  3)   0.202 us    |        vma_dup_policy();
+  3)   0.132 us    |        dup_userfaultfd();
+  3)               |        copy_page_range() {
+  3)   0.291 us    |          _raw_spin_lock();
+  3)   0.131 us    |          _raw_spin_lock();
+  3)   0.143 us    |          _raw_spin_lock();
+  3)   1.684 us    |        }
+  3)   0.250 us    |        vm_area_dup();
+  3)   0.132 us    |        vma_dup_policy();
+  3)   0.133 us    |        dup_userfaultfd();
+  3)               |        copy_page_range() {
+  3)   0.131 us    |          _raw_spin_lock();
+  3)   0.132 us    |          _raw_spin_lock();
+  3)   0.832 us    |        }
+  3)   0.347 us    |        vm_area_dup();
+  3)   0.125 us    |        vma_dup_policy();
+  3)   0.133 us    |        dup_userfaultfd();
+  3)               |        copy_page_range() {
+  3)   0.131 us    |          _raw_spin_lock();
+  3)   0.132 us    |          _raw_spin_lock();
+  3)   0.993 us    |        }
+  3)   0.249 us    |        vm_area_dup();
+  3)   0.133 us    |        vma_dup_policy();
+  3)   0.132 us    |        dup_userfaultfd();
+  3)               |        copy_page_range() {
+  3)   0.131 us    |          _raw_spin_lock();
+  3)   0.131 us    |          _raw_spin_lock();
+  3)   0.806 us    |        }
+  3)   0.249 us    |        vm_area_dup();
+  3)   0.131 us    |        vma_dup_policy();
+  3)   0.223 us    |        dup_userfaultfd();
+  3)   0.142 us    |        copy_page_range();
+  3)   0.269 us    |        vm_area_dup();
+  3)   0.131 us    |        vma_dup_policy();
+  3)   0.130 us    |        dup_userfaultfd();
+  3)   0.134 us    |        copy_page_range();
+  3)   0.248 us    |        vm_area_dup();
+  3)   0.131 us    |        vma_dup_policy();
+  3)   0.132 us    |        dup_userfaultfd();
+  3)   0.172 us    |        copy_page_range();
+  3)   0.266 us    |        vm_area_dup();
+  3)   0.131 us    |        vma_dup_policy();
+  3)   0.132 us    |        dup_userfaultfd();
+  3)               |        copy_page_range() {
+  3)   0.131 us    |          _raw_spin_lock();
+  3)   0.132 us    |          _raw_spin_lock();
+  3)   0.804 us    |        }
+  3)   0.247 us    |        vm_area_dup();
+  3)   0.126 us    |        vma_dup_policy();
+  3)   0.135 us    |        dup_userfaultfd();
+  3)               |        copy_page_range() {
+  3)   0.131 us    |          _raw_spin_lock();
+  3)   0.133 us    |          _raw_spin_lock();
+  3)   0.791 us    |        }
+  3)   0.249 us    |        vm_area_dup();
+  3)   0.132 us    |        vma_dup_policy();
+  3)   0.130 us    |        dup_userfaultfd();
+  3)               |        copy_page_range() {
+  3)   0.158 us    |          _raw_spin_lock();
+  3)   0.137 us    |          _raw_spin_lock();
+  3)   0.132 us    |          _raw_spin_lock();
+  3)   0.144 us    |          _raw_spin_lock();
+  3)   2.322 us    |        }
+  3)   0.281 us    |        vm_area_dup();
+  3)   0.231 us    |        vma_dup_policy();
+  3)   0.134 us    |        dup_userfaultfd();
+  3)               |        copy_page_range() {
+  3)   0.131 us    |          _raw_spin_lock();
+  3)   0.295 us    |          _raw_spin_lock();
+  3)   1.030 us    |        }
+  3)   0.275 us    |        vm_area_dup();
+  3)   0.133 us    |        vma_dup_policy();
+  3)   0.134 us    |        dup_userfaultfd();
+  3)   0.166 us    |        copy_page_range();
+  3) + 50.413 us   |      }
+  3) + 52.480 us   |    }
+  3)   0.170 us    |    copy_namespaces();
+  3)   0.503 us    |    copy_thread();
+  3)               |    alloc_pid() {
+  3)   0.224 us    |      _raw_spin_lock_irq();
+  3)   0.134 us    |      _raw_spin_lock_irq();
+  3)   2.683 us    |    }
+  3)               |    cgroup_can_fork() {
+  3)   0.198 us    |      _raw_spin_lock_irq();
+  3)   1.952 us    |    }
+  3)               |    sched_cgroup_fork() {
+  3)   0.157 us    |      _raw_spin_lock();
+  3)   1.067 us    |    }
+  3)   0.141 us    |    klp_copy_process();
+  3)   0.200 us    |    sched_core_fork();
+  3)   0.129 us    |    _raw_spin_lock();
+  3)   0.175 us    |    proc_fork_connector();
+  3)   0.140 us    |    sched_post_fork();
+  3)               |    cgroup_post_fork() {
+  3)   0.132 us    |      _raw_spin_lock_irq();
+  3)   0.376 us    |      _raw_spin_lock();
+  3)   0.140 us    |      _raw_spin_lock();
+  3)   1.972 us    |    }
+  3)   0.183 us    |    uprobe_copy_process();
+  3) + 92.907 us   |  }

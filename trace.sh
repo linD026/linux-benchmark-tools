@@ -58,6 +58,9 @@ trace_on "vma_dup_policy"
 trace_on "dup_userfaultfd"
 trace_on "vm_area_dup"
 trace_on "copy_page_range"
+trace_on "__ksm_enter" # ksm_fork
+trace_on "__khugepaged_enter" # khugepaged_fork
+
 
 trace_on "copy_namespaces"
 
@@ -80,6 +83,9 @@ trace_on "cgroup_fork"
 trace_on "dup_task_struct"
 trace_on "copy_creds"
 trace_on "__mpol_dup"
+
+trace_on "_raw_spin_lock"
+trace_on "_raw_spin_lock_irq"
 
 PFLAGS="
         --tracer=function_graph"
