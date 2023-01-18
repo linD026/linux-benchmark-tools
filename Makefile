@@ -1,6 +1,6 @@
 CC ?= gcc
 CFLAGS := -g
-CFLAGS += -O2
+#CFLAGS += -O2
 
 BENCHMARK := benchmark
 BENCHMARK_SRC := $(BENCHMARK:=.c)

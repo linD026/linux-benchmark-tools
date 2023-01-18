@@ -52,12 +52,12 @@ trace_on "copy_signal"
 
 #trace_on "copy_mm"
 trace_on "dup_mm"
-#trace_on "dup_mmap"
-#trace_on "uprobe_dup_mmap"
-#trace_on "vma_dup_policy"
-#trace_on "dup_userfaultfd"
-#trace_on "vm_area_dup"
-#trace_on "copy_page_range"
+trace_on "dup_mmap"
+trace_on "uprobe_dup_mmap"
+trace_on "vma_dup_policy"
+trace_on "dup_userfaultfd"
+trace_on "vm_area_dup"
+trace_on "copy_page_range"
 
 trace_on "copy_namespaces"
 
