@@ -39,12 +39,12 @@ static void unset_mem(void)
 
 static void set_all(void)
 {
-    BUG_ON(set_mem(), "memory");
+    //BUG_ON(set_mem(), "memory");
 }
 
 static void unset_all(void)
 {
-    unset_mem();
+    //unset_mem();
 }
 
 int main(void)

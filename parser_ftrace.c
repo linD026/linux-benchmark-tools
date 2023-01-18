@@ -10,6 +10,7 @@ struct info {
     struct info *next;
 };
 
+static int chart_cnt = 0;
 static FILE *fp = NULL;
 
 static float parser(struct info *head)
@@ -30,6 +31,16 @@ static float parser(struct info *head)
         info->next = NULL;
         memset(info->name,'\0', 40);
 
+        /*
+         *   + means that the function exceeded 10 usecs.
+         *   ! means that the function exceeded 100 usecs.
+         *   # means that the function exceeded 1000 usecs.
+         *   * means that the function exceeded 10 msecs.
+         *   @ means that the function exceeded 100 msecs.
+         *   $ means that the function exceeded 1 sec.
+         */
+#define in_sym_list(ch) \
+        (ch == '+' || ch == '!' || ch == '#' || ch == '*' || ch == '@' || ch == '$')
         //   5)               |  copy_process() {
         ret = sscanf(buffer, "%d%c %c %s %c",
                      &info->cpu, &l, &t, info->name, &r);
@@ -61,7 +72,7 @@ static float parser(struct info *head)
         //   5) + 99.954 us   |  }
         ret = sscanf(buffer, "%d%c %c %f %s %c %c",
                 &info->cpu, &l, &a, &info->nr, us, &t, &r);
-        if (ret == 7 && l == ')' && a == '+' && t == '|' && r == '}' )  {
+        if (ret == 7 && l == ')' && in_sym_list(a) && t == '|' && r == '}' )  {
 end:
             head->nr = info->nr;
             free(info);
@@ -77,8 +88,9 @@ end:
         //   1) + 21.733 us   |    dup_mm();
         ret = sscanf(buffer, "%d%c %c %f %s %c %s",
                      &info->cpu, &l, &a, &info->nr, us, &t, info->name);
-         if (ret == 7 && l == ')' && a == '+' && t == '|' &&
+         if (ret == 7 && l == ')' && in_sym_list(a) && t == '|' &&
                   info->name[0] != '}' && info->name[0] != '{')
+#undef in_sym_list
             goto success;
 
         BUG_ON(1, "parse failed:%s", buffer);
@@ -101,8 +113,9 @@ skip:
     }
 
 out:
-    printf("%s - %f\n", head->name, head->nr);
-    printf("['%s', 'duration'],\n", head->name);
+    printf("drawChart(");
+    printf("'%s - %f us',\n", head->name, head->nr);
+    printf("[['%s', 'duration (us)'],\n", head->name);
     for (struct info *tmp = head->next; tmp;) {
         struct info *next = tmp->next;
 
@@ -111,13 +124,13 @@ out:
         free(tmp);
         tmp = next;
     }
-    printf("['%s', %f]\n\n", "rest", head->nr - time);
+    printf("['%s', %f]],\n", "rest", head->nr - time);
+    printf("\"piechart%d\");\n", chart_cnt++);
     time = head->nr;
     free(head);
 
     return time;
 }
-
 
 // https://jsfiddle.net/linD026/a1fsxpkj/
 int main (void)
@@ -127,6 +140,10 @@ int main (void)
     fp = fopen("ftrace_output", "r");
     parser(NULL);
     fclose(fp);
+    
+    printf("\n<script type=\"text/javascript\" src=\"https://www.gstatic.com/charts/loader.js\"></script>\n");
+    for (int i = 0; i < chart_cnt;i++)
+        printf("       <div id=\"piechart%d\" style=\"width: 900px; height: 500px;\"></div>\n", i);
 
     return 0;
 }

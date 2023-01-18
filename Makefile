@@ -6,7 +6,7 @@ BENCHMARK := benchmark
 BENCHMARK_SRC := $(BENCHMARK:=.c)
 BENCHMARK_OBJ := $(BENCHMARK_SRC:.c=.o)
 
-PARSE := parse_ftrace_to_table
+PARSE := parser_ftrace
 PARSE_SRC := $(PARSE:=.c)
 PARSE_OBJ := $(PARSE_SRC:.c=.o)
 
