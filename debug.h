@@ -120,4 +120,3 @@ static inline void dump_stack(void)
 #define pr_debug(fmt, ...) pr_info("DEBUG: " fmt, ##__VA_ARGS__)
 
 #endif /* __OSC_DEBUG_H__ */
-

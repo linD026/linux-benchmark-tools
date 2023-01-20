@@ -1,6 +1,7 @@
 CC ?= gcc
 CFLAGS := -g
-#CFLAGS += -O2
+CFLAGS += -O2
+#CFLAGS += -fsanitize=leak
 
 BENCHMARK := benchmark
 BENCHMARK_SRC := $(BENCHMARK:=.c)
@@ -24,6 +25,9 @@ benchmark: $(BENCHMARK_OBJ)
 
 parser: $(PARSE_OBJ)
 	$(CC) $(PARSE_OBJ) -o $(PARSE)
+
+indent:
+	clang-format -i *.[ch]
 
 clean:
 	rm -f $(GEN)
