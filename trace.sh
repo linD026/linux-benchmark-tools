@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# sudo bash trace.sh ./program
+
 function print()
 {
     echo "[script] $1"

@@ -147,7 +147,10 @@ static void __print_ftrace_info(struct info *head)
     for (struct info *tmp = head->nested ? head->nested : head->next; tmp;) {
         struct info *next = tmp->next;
 
-        printf("           ['%s', %f],\n", tmp->name, tmp->nr);
+        if (!next)
+            printf("           ['%s', %f]],\n", tmp->name, tmp->nr);
+        else
+            printf("           ['%s', %f],\n", tmp->name, tmp->nr);
         free(tmp);
         tmp = next;
     }
