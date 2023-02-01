@@ -22,74 +22,91 @@ function get_function()
 }
 
 # name_of_function
-function trace_on()
+function tracing_on()
 {
     get_function $1
     TRACE_FUNCTION="$TRACE_FUNCTION --trace-funcs=$1 -graph-funcs=$1"
     print "Add $1 to filter"
 }
 
-trace_on "sched_fork"
-
-#trace_on "perf_event_init_task"
-
-trace_on "audit_alloc"
-
-# Only Initialize linked list
-#trace_on "shm_init_task"
-
-trace_on "security_task_alloc"
-
-trace_on "copy_semundo"
-
-#trace_on "copy_files"
-trace_on "dup_fd"
-
-#trace_on "copy_fs"
-trace_on "copy_fs_struct"
-
-trace_on "copy_sighand"
-
-trace_on "copy_signal"
-
-#trace_on "copy_mm"
-trace_on "dup_mm"
-trace_on "dup_mmap"
-trace_on "uprobe_dup_mmap"
-trace_on "vma_dup_policy"
-trace_on "dup_userfaultfd"
-trace_on "vm_area_dup"
-trace_on "copy_page_range"
-trace_on "__ksm_enter" # ksm_fork
-trace_on "__khugepaged_enter" # khugepaged_fork
-
-
-trace_on "copy_namespaces"
-
-#trace_on "__copy_io"
-
-trace_on "copy_thread"
-
-trace_on "copy_process"
-
-trace_on "alloc_pid"
-trace_on "cgroup_can_fork"
-trace_on "sched_cgroup_fork"
-trace_on "klp_copy_process"
-trace_on "sched_core_fork"
-trace_on "proc_fork_connector"
-trace_on "sched_post_fork"
-trace_on "cgroup_post_fork"
-trace_on "uprobe_copy_process"
-trace_on "cgroup_fork"
-trace_on "dup_task_struct"
-trace_on "copy_creds"
-trace_on "__mpol_dup"
-
-trace_on "_raw_spin_lock"
-trace_on "_raw_spin_lock_irq"
+#tracing_on "sched_fork"
+#
+##tracing_on "perf_event_init_task"
+#
+#tracing_on "audit_alloc"
+#
+## Only Initialize linked list
+##tracing_on "shm_init_task"
+#
+#tracing_on "security_task_alloc"
+#
+#tracing_on "copy_semundo"
+#
+##tracing_on "copy_files"
+#tracing_on "dup_fd"
+#
+##tracing_on "copy_fs"
+#tracing_on "copy_fs_struct"
+#
+##tracing_on "copy_sighand"
+#
+##tracing_on "copy_signal"
+#
+##tracing_on "copy_mm"
+#tracing_on "dup_mm"
+#tracing_on "dup_mmap"
+#tracing_on "uprobe_dup_mmap"
+#tracing_on "vma_dup_policy"
+#tracing_on "dup_userfaultfd"
+#tracing_on "vm_area_dup"
+#tracing_on "copy_page_range"
+#tracing_on "__ksm_enter" # ksm_fork
+#tracing_on "__khugepaged_enter" # khugepaged_fork
+#
+#
+#tracing_on "copy_namespaces"
+#
+##tracing_on "__copy_io"
+#
+#tracing_on "copy_thread"
+#
+#tracing_on "copy_process"
+#
+#tracing_on "alloc_pid"
+#tracing_on "cgroup_can_fork"
+#tracing_on "sched_cgroup_fork"
+#tracing_on "klp_copy_process"
+#tracing_on "sched_core_fork"
+#tracing_on "proc_fork_connector"
+#tracing_on "sched_post_fork"
+#tracing_on "cgroup_post_fork"
+#tracing_on "uprobe_copy_process"
+#tracing_on "cgroup_fork"
+#tracing_on "dup_task_struct"
+#tracing_on "copy_creds"
+#tracing_on "__mpol_dup"
+#
+#tracing_on "_raw_spin_lock"
+#tracing_on "_raw_spin_lock_irq"
 
 PFLAGS="
         --tracer=function_graph"
 
-perf ftrace $TRACE_FUNCTION $PFLAGS $1
+# For single thread right now (see the man page).
+#perf ftrace $TRACE_FUNCTION $PFLAGS $1
+
+function ftrace_fs()
+{
+    echo 0 > $TRACE_PATH/tracing_on
+    echo "function_graph" > $TRACE_PATH/current_tracer
+    echo $TRACE_FUNCTION > $TRACE_PATH/set_ftrace_filter
+    echo $$ > $TRACE_PATH/set_ftrace_pid
+
+    echo 1 > $TRACE_PATH/tracing_on
+    $1
+    echo 0 > $TRACE_PATH/tracing_on
+    echo > $TRACE_PATH/set_ftrace_pid
+    cat $TRACE_PATH/trace > ftrace.log
+}
+
+ftrace_fs
