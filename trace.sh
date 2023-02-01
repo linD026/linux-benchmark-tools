@@ -1,14 +1,32 @@
 #!/usr/bin/env bash
 
-# sudo bash trace.sh ./program
+# sudo bash trace.sh [option<p:f>]./program
 
 function print()
 {
     echo "[script] $1"
 }
 
+while getopts "pf" flag
+do
+    case "${flag}" in
+        p) interface="perf";;
+        f) interface="fs";;
+    esac
+done
+
+if [ "$interface" = "" ]; then
+     print "sudo bash trace.sh <interface=p|f> ./program"
+fi
+print "Set $interface as interface"
+
 TRACE_PATH="/sys/kernel/tracing"
 TRACE_FUNCTION=""
+
+# cleanup
+echo 0 > $TRACE_PATH/tracing_on
+echo > $TRACE_PATH/set_ftrace_filter
+echo > $TRACE_PATH/trace
 
 # name
 function get_function()
@@ -25,7 +43,11 @@ function get_function()
 function tracing_on()
 {
     get_function $1
-    TRACE_FUNCTION="$TRACE_FUNCTION --trace-funcs=$1 -graph-funcs=$1"
+    if [ "$interface" = "perf" ]; then
+        TRACE_FUNCTION="$TRACE_FUNCTION --trace-funcs=$1 -graph-funcs=$1"
+    elif [ "$interface" = "fs" ]; then
+        echo $1 >> $TRACE_PATH/set_ftrace_filter
+    fi
     print "Add $1 to filter"
 }
 
@@ -89,24 +111,40 @@ function tracing_on()
 #tracing_on "_raw_spin_lock"
 #tracing_on "_raw_spin_lock_irq"
 
-PFLAGS="
-        --tracer=function_graph"
+function ftrace_perf()
+{
+    PFLAGS="
+            --tracer=function_graph"
 
-# For single thread right now (see the man page).
-#perf ftrace $TRACE_FUNCTION $PFLAGS $1
+    # For single thread right now (see the man page).
+    perf ftrace $TRACE_FUNCTION $PFLAGS $1
+}
 
 function ftrace_fs()
 {
-    echo 0 > $TRACE_PATH/tracing_on
     echo "function_graph" > $TRACE_PATH/current_tracer
-    echo $TRACE_FUNCTION > $TRACE_PATH/set_ftrace_filter
+    print "set function_graph"
+
+    print "set_ftrace_filter has: {"
+    cat $TRACE_PATH/set_ftrace_filter
+    print "}"
+
+    echo function-fork > $TRACE_PATH/trace_options
+    print "set function-fork"
+
     echo $$ > $TRACE_PATH/set_ftrace_pid
+    print "set pid $$"
 
     echo 1 > $TRACE_PATH/tracing_on
     $1
     echo 0 > $TRACE_PATH/tracing_on
+
     echo > $TRACE_PATH/set_ftrace_pid
     cat $TRACE_PATH/trace > ftrace.log
 }
 
-ftrace_fs
+if [ "$interface" = "perf" ]; then
+    ftrace_perf
+elif [ "$interface" = "fs" ]; then
+    ftrace_fs
+fi
