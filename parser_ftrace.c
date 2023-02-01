@@ -12,8 +12,14 @@
  *
  *
  */
+
+#define STACK_INFO_SIZE 80
 struct info {
     char name[40];
+    struct {
+        const char *stack_info[STACK_INFO_SIZE];
+        unsigned int top;
+    };
     float nr;
     int cpu;
     struct info *next;
@@ -21,14 +27,17 @@ struct info {
     int maybe_nested;
 };
 
+#define BUF_MAX_SIZE 256
+
 static int chart_cnt = 0;
 static FILE *fp = NULL;
 
 static struct info *parser(struct info *head)
 {
-    char buffer[80] = { 0 };
+    char buffer[BUF_MAX_SIZE] = { 0 };
 
-    while (memset(buffer, '\0', 80), fgets(buffer, 80, fp) != NULL) {
+    while (memset(buffer, '\0', BUF_MAX_SIZE), fgets(buffer, BUF_MAX_SIZE, fp)
+            != NULL) {
         char us[5];
         char l, t, a, r;
         int ret = 0;
@@ -42,6 +51,9 @@ static struct info *parser(struct info *head)
         info->next = NULL;
         info->nested = NULL;
         memset(info->name, '\0', 40);
+        info->top = head->top;
+        for (int i = 0; i < info->top; i++)
+            info->stack_info[i] = head->stack_info[i];
 
         /*
          *   + means that the function exceeded 10 usecs.
@@ -71,6 +83,7 @@ static struct info *parser(struct info *head)
                     }
                 }
 
+                info->stack_info[info->top++] = head->name;
                 parser(info);
                 info->nested = info->next;
                 info->next = NULL;
@@ -166,7 +179,10 @@ static void __print_info(struct info *head)
         __print_ftrace_info(head);
         return;
     }
-    printf("'%s - %f us',\n", head->name, head->nr);
+    printf("'");
+    for (int i = 0; i < head->top; i++)
+        printf("%s:", head->stack_info[i]);
+    printf("%s - %f us',\n", head->name, head->nr);
     printf("          [['%s', 'duration (us)'],\n", head->name);
     for (struct info *tmp = head->nested ? head->nested : head->next; tmp;) {
         struct info *next = tmp->next;
@@ -204,6 +220,7 @@ int main(void)
 {
     struct info main_info = {
         .name = "ftrace",
+        .top = 0,
         .cpu = 0,
         .nr = 0,
         .maybe_nested = 0,
