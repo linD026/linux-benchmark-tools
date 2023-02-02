@@ -1,24 +1,32 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <getopt.h>
+
 #include "debug.h"
 
+// Allow to use pr_info() without breaking the following:
+// ./parser_ftrace > parser_output
+#undef debug_stream
+#define debug_stream stderr
+
 /*
- *                          [next]
+ * task
+ *  |
+ *  V                      [next]
  * main function -> function -> ... 
  *                  | [nested_function]
  *                  nested_function -> ....
  *
- *
- *
  */
 
-//#define FTRACE_OUPUT "ftrace_output"
-#define FTRACE_OUPUT "triforce-fuzzer.log"
+#define NR_NAME 40
+
+static char ftrace_output[NR_NAME] = "ftrace_output";
 
 #define STACK_INFO_SIZE 80
 struct info {
-    char name[40];
+    char name[NR_NAME];
     struct {
         const char *stack_info[STACK_INFO_SIZE];
         unsigned int top;
@@ -37,7 +45,7 @@ struct task {
     /* task main head */
     struct info *head;
     unsigned int pid;
-    char name[40];
+    char name[NR_NAME];
 };
 
 static struct task tasks[MAX_TASK_SIZE];
@@ -52,8 +60,62 @@ static char buffer[BUF_MAX_SIZE];
 static int chart_cnt = 0;
 static FILE *fp = NULL;
 
+#define OPT_FTRACE_OUTPUT 0
+#define OPT_CHECK_CPU 1
+#define NR_OPTION 2
+#define OPT_STRING "01"
+
+struct opt_data {
+    unsigned int flags[NR_OPTION];
+    struct option options[NR_OPTION];
+};
+
+static struct opt_data opt_data = {
+    .flags = { 0 },
+    .options = { 
+        { "ftrace_output", optional_argument, 0, OPT_FTRACE_OUTPUT },
+        { "check_cpu", no_argument, 0, OPT_CHECK_CPU },
+    },
+};
+
+static void set_option (int argc, char *argv[])
+{
+    int opt;
+    int opt_index;
+
+    while ((opt = getopt_long(argc, argv, OPT_STRING,
+                    opt_data.options, &opt_index))
+           != -1) {
+        switch (opt) {
+        case OPT_FTRACE_OUTPUT:
+            strncpy(ftrace_output, optarg, NR_NAME);
+            ftrace_output[NR_NAME - 1] = '\0';
+            break;
+        case OPT_CHECK_CPU:
+            opt_data.flags[OPT_CHECK_CPU] = 1;
+            break;
+        default:
+            BUG_ON(1, "unkown option: %d", opt);
+        }
+    }
+
+    pr_info("%s %s\n", opt_data.options[OPT_CHECK_CPU].name,
+            opt_data.flags[OPT_CHECK_CPU] ? "set" : "unset");
+    pr_info("Scan the file: %s\n", ftrace_output);
+}
+
 static void check_and_update_prev_cpu(struct info *info)
 {
+    /*
+     * In some of the case (i.e., the single thread mode) we don't check the
+     * cpu number since it has the false positive.
+     * But for the mutiple thread (e.g., ftrace with function-fork option),
+     * we should check the cpu number since it might be the context switch
+     * without notification.
+     */
+    if (!opt_data.flags[OPT_CHECK_CPU])
+        return;
+
     if (prev_cpu)
         BUG_ON(info->cpu != *prev_cpu,
                "Potentially miss something plz check manually\nbuffer:%s",
@@ -121,7 +183,7 @@ static struct info *parser(struct info *head)
         info->maybe_nested = 0;
         info->next = NULL;
         info->nested = NULL;
-        memset(info->name, '\0', 40);
+        memset(info->name, '\0', NR_NAME);
         if (head) {
             info->top = head->top;
             for (int i = 0; i < info->top; i++)
@@ -151,7 +213,7 @@ static struct info *parser(struct info *head)
                 for (struct info *tmp = head->nested ? head->nested :
                                                        head->next;
                      tmp; tmp = tmp->next) {
-                    if (strncmp(tmp->name, info->name, 40) == 0) {
+                    if (strncmp(tmp->name, info->name, NR_NAME) == 0) {
                         free(info);
                         tmp->maybe_nested = 1;
                         current->curr_info = tmp;
@@ -211,29 +273,29 @@ static struct info *parser(struct info *head)
             int next_cpu;
             unsigned int curr_pid, next_pid;
             char arrow[3];
-            char curr_name[40];
-            char next_name[40];
+            char curr_name[NR_NAME];
+            char next_name[NR_NAME];
 
             // cleanup the cpu checking info
             prev_cpu = NULL;
 
             memset(buffer, '\0', BUF_MAX_SIZE);
-            memset(curr_name, '\0', 40);
-            memset(next_name, '\0', 40);
+            memset(curr_name, '\0', NR_NAME);
+            memset(next_name, '\0', NR_NAME);
             BUG_ON(!fgets(buffer, BUF_MAX_SIZE, fp), "fget() == NULL");
             ret = sscanf(buffer, "%d%c %s %s %s", &next_cpu, &l, curr_name,
                          arrow, next_name);
             //printf("> %s", buffer);
             BUG_ON(ret != 5, "switch task:|%s|%s|%s|", buffer, curr_name,
                    next_name);
-            for (int i = 0; i < 37; i++) {
+            for (int i = 0; i < NR_NAME - 3; i++) {
                 if (curr_name[i] == '>' && curr_name[i + 1] == '-') {
                     curr_pid = atoi(&curr_name[i + 2]);
                     curr_name[i + 1] = '\0';
                     break;
                 }
             }
-            for (int i = 0; i < 37; i++) {
+            for (int i = 0; i < NR_NAME - 3; i++) {
                 if (next_name[i] == '>' && next_name[i + 1] == '-') {
                     next_pid = atoi(&next_name[i + 2]);
                     next_name[i + 1] = '\0';
@@ -266,7 +328,7 @@ static struct info *parser(struct info *head)
         info->name[offset - name_rollback] = '\0';
         for (struct info *tmp = head->nested ? head->nested : head->next; tmp;
              tmp = tmp->next) {
-            if (strncmp(tmp->name, info->name, 40) == 0) {
+            if (strncmp(tmp->name, info->name, NR_NAME) == 0) {
                 tmp->nr += info->nr;
                 free(info);
                 goto next;
@@ -380,15 +442,17 @@ static void print_info(struct info *head, const char *name, unsigned int pid)
 }
 
 // https://jsfiddle.net/linD026/a1fsxpkj/
-int main(void)
+int main(int argc, char *argv[])
 {
     struct info *main_info = dup_main_info();
     current = &tasks[task_top++];
     current->head = main_info;
     current->curr_info = main_info;
 
+    set_option(argc, argv);
+
     printf("JavaScript pie chart data table (see draw_pie_chart.js):\n\n");
-    fp = fopen(FTRACE_OUPUT, "r+");
+    fp = fopen(ftrace_output, "r+");
     parser(main_info);
     fclose(fp);
 
@@ -404,7 +468,7 @@ int main(void)
             "       <div id=\"piechart%d\" style=\"width: 900px; height: 500px;\"></div>\n",
             i);
 
-    pr_info("[INFO] task:%d\n", task_top);
+    pr_info("nr_task:%d\n", task_top);
     WARN_ON(task_top >= MAX_TASK_SIZE, "max task:%d/%d", task_top,
             MAX_TASK_SIZE);
 

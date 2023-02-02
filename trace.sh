@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# sudo bash trace.sh [option<p:f>]./program
+# sudo bash trace.sh [option:pf] ./program
 
 function print()
 {
@@ -15,8 +15,10 @@ do
     esac
 done
 
+print "The program you want to trace is: $2"
 if [ "$interface" = "" ]; then
-     print "sudo bash trace.sh <interface=p|f> ./program"
+     print "sudo bash trace.sh [option:pf] ./program"
+     exit 0
 fi
 print "Set $interface as interface"
 
@@ -51,65 +53,16 @@ function tracing_on()
     print "Add $1 to filter"
 }
 
-#tracing_on "sched_fork"
-#
-##tracing_on "perf_event_init_task"
-#
-#tracing_on "audit_alloc"
-#
-## Only Initialize linked list
-##tracing_on "shm_init_task"
-#
-#tracing_on "security_task_alloc"
-#
-#tracing_on "copy_semundo"
-#
-##tracing_on "copy_files"
-#tracing_on "dup_fd"
-#
-##tracing_on "copy_fs"
-#tracing_on "copy_fs_struct"
-#
-##tracing_on "copy_sighand"
-#
-##tracing_on "copy_signal"
-#
-##tracing_on "copy_mm"
-#tracing_on "dup_mm"
-#tracing_on "dup_mmap"
-#tracing_on "uprobe_dup_mmap"
-#tracing_on "vma_dup_policy"
-#tracing_on "dup_userfaultfd"
-#tracing_on "vm_area_dup"
-#tracing_on "copy_page_range"
-#tracing_on "__ksm_enter" # ksm_fork
-#tracing_on "__khugepaged_enter" # khugepaged_fork
-#
-#
-#tracing_on "copy_namespaces"
-#
-##tracing_on "__copy_io"
-#
-#tracing_on "copy_thread"
-#
-#tracing_on "copy_process"
-#
-#tracing_on "alloc_pid"
-#tracing_on "cgroup_can_fork"
-#tracing_on "sched_cgroup_fork"
-#tracing_on "klp_copy_process"
-#tracing_on "sched_core_fork"
-#tracing_on "proc_fork_connector"
-#tracing_on "sched_post_fork"
-#tracing_on "cgroup_post_fork"
-#tracing_on "uprobe_copy_process"
-#tracing_on "cgroup_fork"
-#tracing_on "dup_task_struct"
-#tracing_on "copy_creds"
-#tracing_on "__mpol_dup"
-#
-#tracing_on "_raw_spin_lock"
-#tracing_on "_raw_spin_lock_irq"
+
+IFS='
+'
+
+TRACING_FUNCTION_LIST=`cat tracing_function_list`
+for item in $TRACING_FUNCTION_LIST; do
+    if [[ "$item" != "#"* ]]; then
+        tracing_on "$item"
+    fi
+done
 
 function ftrace_perf()
 {
@@ -136,7 +89,7 @@ function ftrace_fs()
     print "set pid $$"
 
     echo 1 > $TRACE_PATH/tracing_on
-    $1
+    $2
     echo 0 > $TRACE_PATH/tracing_on
 
     echo > $TRACE_PATH/set_ftrace_pid

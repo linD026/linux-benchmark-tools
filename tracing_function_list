@@ -1,0 +1,61 @@
+sched_fork
+#
+## perf_event_init_task
+#
+# audit_alloc
+#
+## Only Initialize linked list
+## shm_init_task
+#
+# security_task_alloc
+#
+# copy_semundo
+#
+## copy_files
+# dup_fd
+#
+## copy_fs
+# copy_fs_struct
+#
+## copy_sighand
+#
+## copy_signal
+#
+## copy_mm
+# dup_mm
+# dup_mmap
+# uprobe_dup_mmap
+# vma_dup_policy
+# dup_userfaultfd
+# vm_area_dup
+# copy_page_range
+# __ksm_enter # ksm_fork
+# __khugepaged_enter # khugepaged_fork
+#
+#
+# copy_namespaces
+#
+## __copy_io
+#
+# copy_thread
+#
+# copy_process
+#
+# alloc_pid
+# cgroup_can_fork
+# sched_cgroup_fork
+# klp_copy_process
+# sched_core_fork
+# proc_fork_connector
+# sched_post_fork
+# cgroup_post_fork
+# uprobe_copy_process
+# cgroup_fork
+# dup_task_struct
+# copy_creds
+# __mpol_dup
+#
+# _raw_spin_lock
+# _raw_spin_lock_irq
+
+

@@ -1,29 +1,59 @@
 # Benchmark tools
 
-## ftrace with google piechart (jsfiddle.net)
+## ftrace with google piechart (and jsfiddle.net)
 
 #### Step 1 - Set the function filiter
 
-In `trace.sh` set `trace_on $function`.
+Add the function you want to trace into `tracing_function_list` file.
+For the comment add `#` in front of the line.
+For exmaple, Add `sched_fork` function will be like:
 
-#### Step 2 - Get the ftrace output
-
-Copy the function section you want to analyze to `ftrace_output`.
-For example, we trace the benchmark.
-
-```bash
-make benchmark
-sudo bash trace.sh ./benchmark
+```
+# tracing_function_list
+sched_fork
 ```
 
-Then build the parser.
+#### Step 2 - ftrace with the program
+
+There are some options you can set:
+
+- `p`:
+    Use the perf interface to set the ftrace.
+    Right now it only for the single thread program.
+    See the manual page for more informatino.
+- 'f':
+    Use the file system (`/sys/kernel/tracing`) to set the ftrace.
+    
+Use `trace.sh` to trace your program. For example:
+
+```bash
+sudo bash trace.sh -p ./program
+```
+
+#### Step 3 - Parser the ftrace output
+
+Build the parser.
 
 ```bash
 make parser
-./parser_ftrace
 ```
 
-#### Step 3 - PieChart
+There are some options you can set:
+
+- `ftrace_output`:
+    The file name that will be scanned by the parser. The default name is
+    `ftrace_output`.
+- `check_cpu`:
+    In some of the case (i.e., the single thread mode) we don't check the
+    cpu number since it has the false positive. But for the mutiple thread
+    (e.g., ftrace with function-fork option), we should check the cpu number
+    since it might be the context switch without notification.
+
+```bash
+./parser_ftrace [option]
+```
+
+#### Step 4 - PieChart
 
 Then goto the jsfiddle.net to get the piechart.
 The source codes for JS is in `draw_pie_chart.js`.
