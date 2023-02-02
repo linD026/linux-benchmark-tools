@@ -21,13 +21,14 @@ There are some options you can set:
     Use the perf interface to set the ftrace.
     Right now it only for the single thread program.
     See the manual page for more informatino.
-- 'f':
+- `f`:
     Use the file system (`/sys/kernel/tracing`) to set the ftrace.
     
 Use `trace.sh` to trace your program. For example:
 
 ```bash
-sudo bash trace.sh -p ./program
+# the ./program should be second argument
+sudo bash trace.sh [option] ./program
 ```
 
 #### Step 3 - Parser the ftrace output
@@ -50,12 +51,12 @@ There are some options you can set:
     since it might be the context switch without notification.
 
 ```bash
-./parser_ftrace [option]
+./parser_ftrace [options]
 ```
 
 #### Step 4 - PieChart
 
-Then goto the jsfiddle.net to get the piechart.
+Then go to the jsfiddle.net (or other available environment) to get the piechart.
 The source codes for JS is in `draw_pie_chart.js`.
 
 ### More information
