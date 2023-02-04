@@ -453,6 +453,7 @@ int main(int argc, char *argv[])
 
     printf("JavaScript pie chart data table (see draw_pie_chart.js):\n\n");
     fp = fopen(ftrace_output, "r+");
+    BUG_ON(!fp, "fopen:%s", strerror(errno));
     parser(main_info);
     fclose(fp);
 
