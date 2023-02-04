@@ -11,11 +11,12 @@ FUNCTION_LIST="tracing_function_list"
 
 interface=""
 
-while getopts "pfi:" flag
+while getopts "pfl:i:" flag
 do
     case "${flag}" in
         p) interface="perf";;
         f) interface="fs";;
+        l) FUNCTION_LIST=${OPTARG};;
         i) prog=${OPTARG};;
     esac
 done
