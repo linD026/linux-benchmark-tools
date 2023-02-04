@@ -20,15 +20,20 @@ There are some options you can set:
 - `p`:
     Use the perf interface to set the ftrace.
     Right now it only for the single thread program.
-    See the manual page for more informatino.
+    See the manual page for more information.
 - `f`:
     Use the file system (`/sys/kernel/tracing`) to set the ftrace.
-    
+- `l`:
+    The file list all the function you want to trace. The default file is
+    'tracing_function_list'.
+- `i`:
+    The binary file you want to trace/execute.
+
 Use `trace.sh` to trace your program. For example:
 
 ```bash
 # the ./program should be second argument
-sudo bash trace.sh [option] ./program
+sudo bash trace.sh [option:pf] -l function_list -i bin
 ```
 
 #### Step 3 - Parser the ftrace output
