@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <errno.h>
 
 #include "debug.h"
 
@@ -78,14 +79,13 @@ static struct opt_data opt_data = {
     },
 };
 
-static void set_option (int argc, char *argv[])
+static void set_option(int argc, char *argv[])
 {
     int opt;
     int opt_index;
 
-    while ((opt = getopt_long(argc, argv, OPT_STRING,
-                    opt_data.options, &opt_index))
-           != -1) {
+    while ((opt = getopt_long(argc, argv, OPT_STRING, opt_data.options,
+                              &opt_index)) != -1) {
         switch (opt) {
         case OPT_FTRACE_OUTPUT:
             strncpy(ftrace_output, optarg, NR_NAME);
@@ -98,10 +98,6 @@ static void set_option (int argc, char *argv[])
             BUG_ON(1, "unkown option: %d", opt);
         }
     }
-
-    pr_info("%s %s\n", opt_data.options[OPT_CHECK_CPU].name,
-            opt_data.flags[OPT_CHECK_CPU] ? "set" : "unset");
-    pr_info("Scan the file: %s\n", ftrace_output);
 }
 
 static void check_and_update_prev_cpu(struct info *info)
@@ -469,6 +465,9 @@ int main(int argc, char *argv[])
             "       <div id=\"piechart%d\" style=\"width: 900px; height: 500px;\"></div>\n",
             i);
 
+    pr_info("[OPTION] %s %s\n", opt_data.options[OPT_CHECK_CPU].name,
+            opt_data.flags[OPT_CHECK_CPU] ? "set" : "unset");
+    pr_info("[OPTION] Scan the file: %s\n", ftrace_output);
     pr_info("nr_task:%d\n", task_top);
     WARN_ON(task_top >= MAX_TASK_SIZE, "max task:%d/%d", task_top,
             MAX_TASK_SIZE);
