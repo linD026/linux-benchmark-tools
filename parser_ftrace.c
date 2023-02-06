@@ -375,15 +375,13 @@ static int __sort_info(const void *__v1, const void *__v2)
 
 static inline void sort_info(struct array_info *af)
 {
-    qsort(af->array, af->top - 1, sizeof(struct info *), __sort_info);
+    qsort(af->array, af->top, sizeof(struct info *), __sort_info);
 }
 
 static void print_ftrace_info(void)
 {
     float time = 0;
     struct array_info af;
-
-    init_array_info(&af);
 
     for (int i = 0; i < task_top; i++) {
         for (struct info *tmp = tasks[i].head->next; tmp; tmp = tmp->next)
@@ -395,6 +393,7 @@ static void print_ftrace_info(void)
     printf("          [['ftrace', 'duration (us)'],\n");
 
     for (int i = 0; i < task_top; i++) {
+        init_array_info(&af);
         for (struct info *tmp = tasks[i].head->next; tmp; tmp = tmp->next)
             add_sort_info(&af, tmp);
         sort_info(&af);
