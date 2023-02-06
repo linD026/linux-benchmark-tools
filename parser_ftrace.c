@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <errno.h>
+#include <math.h>
 
 #include "debug.h"
 
@@ -342,9 +343,47 @@ static struct info *parser(struct info *head)
     return head;
 }
 
+#define ARRAY_INFO_MAX_SIZE 2048
+struct array_info {
+    struct info *array[ARRAY_INFO_MAX_SIZE];
+    unsigned int top;
+};
+
+static inline void init_array_info(struct array_info *af)
+{
+    memset(af->array, 0, ARRAY_INFO_MAX_SIZE);
+    af->top = 0;
+}
+
+static inline void add_sort_info(struct array_info *af, struct info *entry)
+{
+    BUG_ON(af->top >= ARRAY_INFO_MAX_SIZE, "too many info");
+    af->array[af->top++] = entry;
+}
+
+static int __sort_info(const void *__v1, const void *__v2)
+{
+    const struct info *v1 = *(const struct info **)__v1;
+    const struct info *v2 = *(const struct info **)__v2;
+
+    if (isgreater(v1->nr, v2->nr))
+        return -1;
+    else if (isless(v1->nr, v2->nr))
+        return 1;
+    return 0;
+}
+
+static inline void sort_info(struct array_info *af)
+{
+    qsort(af->array, af->top - 1, sizeof(struct info *), __sort_info);
+}
+
 static void print_ftrace_info(void)
 {
     float time = 0;
+    struct array_info af;
+
+    init_array_info(&af);
 
     for (int i = 0; i < task_top; i++) {
         for (struct info *tmp = tasks[i].head->next; tmp; tmp = tmp->next)
@@ -356,19 +395,22 @@ static void print_ftrace_info(void)
     printf("          [['ftrace', 'duration (us)'],\n");
 
     for (int i = 0; i < task_top; i++) {
-        for (struct info *tmp = tasks[i].head->next; tmp;) {
-            struct info *next = tmp->next;
+        for (struct info *tmp = tasks[i].head->next; tmp; tmp = tmp->next)
+            add_sort_info(&af, tmp);
+        sort_info(&af);
+        for (unsigned int j = 0; j < af.top; j++) {
+            struct info *tmp = af.array[j];
 
-            if (!next && i + 1 == task_top)
+            if (i + 1 == task_top && j + 1 == af.top)
                 printf("           ['%s-PID<%d>:%s', %f]],\n", tasks[i].name,
                        tasks[i].pid, tmp->name, tmp->nr);
             else
                 printf("           ['%s-PID<%d>%s', %f],\n", tasks[i].name,
                        tasks[i].pid, tmp->name, tmp->nr);
             free(tmp);
-            tmp = next;
         }
     }
+
     printf("          \"piechart%d\");\n", chart_cnt++);
 }
 
@@ -376,6 +418,9 @@ static void print_per_task_ftrace_info(struct info *head, const char *name,
                                        unsigned int pid)
 {
     float time = 0;
+    struct array_info af;
+
+    init_array_info(&af);
 
     for (struct info *tmp = head->next; tmp; tmp = tmp->next)
         time += tmp->nr;
@@ -387,20 +432,32 @@ static void print_per_task_ftrace_info(struct info *head, const char *name,
 
     for (struct info *tmp = head->nested ? head->nested : head->next; tmp;) {
         struct info *next = tmp->next;
-        if (!next)
+        add_sort_info(&af, tmp);
+        tmp = next;
+    }
+
+    sort_info(&af);
+
+    for (unsigned int i = 0; i < af.top; i++) {
+        struct info *tmp = af.array[i];
+
+        if (i + 1 == af.top)
             printf("           ['%s-PID<%d>:%s', %f]],\n", name, pid, tmp->name,
                    tmp->nr);
         else
             printf("           ['%s-PID<%d>%s', %f],\n", name, pid, tmp->name,
                    tmp->nr);
-        tmp = next;
     }
+
     printf("          \"piechart%d\");\n", chart_cnt++);
 }
 
 static void __print_info(struct info *head, const char *name, unsigned int pid)
 {
     float time = 0;
+    struct array_info af;
+
+    init_array_info(&af);
 
     if (strncmp(head->name, "ftrace", sizeof("ftrace")) == 0) {
         print_per_task_ftrace_info(head, name, pid);
@@ -416,11 +473,17 @@ static void __print_info(struct info *head, const char *name, unsigned int pid)
 
     for (struct info *tmp = head->nested ? head->nested : head->next; tmp;) {
         struct info *next = tmp->next;
-
-        printf("           ['%s', %f],\n", tmp->name, tmp->nr);
+        add_sort_info(&af, tmp);
         time += tmp->nr;
-        free(tmp);
         tmp = next;
+    }
+
+    sort_info(&af);
+
+    for (unsigned int i = 0; i < af.top; i++) {
+        struct info *tmp = af.array[i];
+        printf("           ['%s', %f],\n", tmp->name, tmp->nr);
+        free(tmp);
     }
     printf("           ['%s', %f]],\n", "rest", head->nr - time);
     printf("          \"piechart%d\");\n", chart_cnt++);
