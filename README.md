@@ -68,3 +68,11 @@ The source codes for JS is in `draw_pie_chart.js`.
 
 - https://developers.google.com/chart/interactive/docs/gallery/piechart
 - https://jsfiddle.net/linD026/a1fsxpkj/
+
+---
+
+## Perf
+
+Following is the information about perf:
+
+- perf Examples, https://www.brendangregg.com/perf.html
