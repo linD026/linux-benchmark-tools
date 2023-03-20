@@ -6,15 +6,11 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-// https://unix.stackexchange.com/questions/33381/getting-information-about-a-process-memory-usage-from-proc-pid-smaps
-// https://stackoverflow.com/questions/9922928/what-does-pss-mean-in-proc-pid-smaps
-// https://lwn.net/Articles/230975/
-
 #define GIG (1ul << 30)
-#define NGIG 32
+#define NGIG 16
 #define SIZE (NGIG * GIG)
 
-#define BUFFER_SIZE 256
+#define BUFFER_SIZE 512
 
 unsigned int parser(char *buffer, const char *symbol)
 {
@@ -29,30 +25,29 @@ unsigned int parser(char *buffer, const char *symbol)
     return 0;
 }
 
-void read_smaps(const char *prefix)
+void read_file(const char *prefix)
 {
     int pid = (int)getpid();
-    char smap_file[BUFFER_SIZE] = { 0 };
+    char file[BUFFER_SIZE] = { 0 };
     char buffer[BUFFER_SIZE] = { 0 };
     FILE *fp = NULL;
-    unsigned int rss = 0;
-    unsigned int pss = 0;
+    unsigned int vmPTE = 0;
 
-    sprintf(smap_file, "/proc/%d/smaps", pid);
-    fp = fopen(smap_file, "r");
+    sprintf(file, "/proc/%d/status", pid);
+    fp = fopen(file, "r");
     if (!fp) {
         perror("fopen");
         exit(1);
     }
 
-    while (fread(buffer, BUFFER_SIZE, 1, fp)) {
+    while (fgets(buffer, BUFFER_SIZE, fp)) {
         buffer[BUFFER_SIZE - 1] = '\0';
-        rss += parser(buffer, "Rss:");
-        pss += parser(buffer, "Pss:");
+        vmPTE += parser(buffer, "VmPTE");
+        memset(buffer, '0', BUFFER_SIZE);
     }
     fclose(fp);
 
-    printf("[%s] [PID %d] RSS:%u, PSS:%u (kB)\n", prefix, pid, rss, pss);
+    printf("[%s] [PID %d] VmPTE:%u kB\n", prefix, pid, vmPTE);
 }
 
 void touch(char *p, int page_size)
@@ -80,14 +75,13 @@ int main(void)
     pid = fork();
     if (pid == 0) {
         sleep(4);
-        read_smaps("Child before touching pages");
-        touch(p, page_size);
-        read_smaps("Child after touching pages");
+        read_file("Child");
+        if (execl("/bin/bash", "bash", "script.sh", NULL) < 0)
+            perror("execl");
         exit(0);
     }
-    read_smaps("Parent's mem before child touching pages");
+    read_file("Parent");
     waitpid(pid, NULL, 0);
-    read_smaps("Parent's mem after child touching pages");
 
     return 0;
 }
