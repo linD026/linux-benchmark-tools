@@ -10,7 +10,6 @@
 // https://stackoverflow.com/questions/9922928/what-does-pss-mean-in-proc-pid-smaps
 // https://lwn.net/Articles/230975/
 
-#define USEC 1000000
 #define GIG (1ul << 30)
 #define NGIG 32
 #define SIZE (NGIG * GIG)
@@ -41,6 +40,10 @@ void read_smaps(const char *prefix)
 
     sprintf(smap_file, "/proc/%d/smaps", pid);
     fp = fopen(smap_file, "r");
+    if (!fp) {
+        perror("fopen");
+        exit(1);
+    }
 
     while (fread(buffer, BUFFER_SIZE, 1, fp)) {
         buffer[BUFFER_SIZE - 1] = '\0';
