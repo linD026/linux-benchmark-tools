@@ -5,7 +5,7 @@
 #include <errno.h>
 #include <math.h>
 
-#include "debug.h"
+#include "../userspace/debug.h"
 
 // Allow to use pr_info() without breaking the following:
 // ./parser_ftrace > parser_output
